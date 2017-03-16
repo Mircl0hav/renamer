@@ -71,7 +71,7 @@ class Renamer
     {
         $result = 0;
         if (copy($src, $dest)) {
-            echo $src . '>>>' . $dest . "\r\n";
+            $this->logger->debug($src . ' :: ' . $dest);
             if (unlink($src)) {
                 $result = 1;
             }
