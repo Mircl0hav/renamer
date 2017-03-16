@@ -140,11 +140,4 @@ class Renamer
         }
     }
 
-    /**
-     *
-     */
-    public function getRapport()
-    {
-        return json_encode($this->rapport, JSON_PRETTY_PRINT);
-    }
 }
