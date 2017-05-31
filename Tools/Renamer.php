@@ -119,7 +119,8 @@ class Renamer
         $dest = $this->destination . DIRECTORY_SEPARATOR . $dest;
 
         $result = 0;
-        if (copy($src, $dest)) {
+
+        if (!$this->checkFile($src, $dest) && copy($src, $dest)) {
             $this->logger->debug($src . ' :: ' . $dest);
             if (!@unlink($src)) {
                 $this->logger->error('delete ' . $src);
@@ -209,6 +210,22 @@ class Renamer
         }
 
         return $dataSet;
+    }
+
+    /**
+     * @param $src
+     * @param $dest
+     * @return bool
+     */
+    private function checkFile($src, $dest)
+    {
+        $src_md5 = md5_file($src);
+        $dest_md5 = md5_file($dest);
+
+        if ($src_md5 === $dest_md5) {
+            return true;
+        }
+        return false;
     }
 
 }
