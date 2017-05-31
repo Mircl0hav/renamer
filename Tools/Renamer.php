@@ -202,8 +202,11 @@ class Renamer
      */
     private function getEntryInfo($entry): array
     {
+        $dataSet['exif'] = [];
         $dataSet['mime'] = mime_content_type($this->source . '/' . $entry);
-        $dataSet['exif'] = exif_read_data($this->source . '/' . $entry);
+        if ($dataSet['mime'] == 'image/jpeg') {
+            $dataSet['exif'] = exif_read_data($this->source . '/' . $entry);
+        }
 
         return $dataSet;
     }
