@@ -105,7 +105,7 @@ class Renamer
         $month = date('m', $fileDateTime);
         $this->create_directory($directory_root . $year);
         $this->create_directory($directory_root . $year . DIRECTORY_SEPARATOR . $month);
-        $newName = date('d-H-i-s', $fileDateTime) . uniqid('_') . $extension;
+        $newName = date('d-H-i', $fileDateTime) . uniqid('_') . $extension;
         return $directory_root . $year . DIRECTORY_SEPARATOR . $month . DIRECTORY_SEPARATOR . $newName;
     }
 
@@ -120,7 +120,7 @@ class Renamer
 
         $result = 0;
 
-        if (!$this->checkFile($src, $dest) && copy($src, $dest)) {
+        if (!$this->files_identical($src, $dest) && copy($src, $dest)) {
             $this->logger->debug($src . ' :: ' . $dest);
             if (!@unlink($src)) {
                 $this->logger->error('delete ' . $src);
@@ -213,22 +213,45 @@ class Renamer
     }
 
     /**
-     * @param $src
-     * @param $dest
+     * @param $fn1
+     * @param $fn2
      * @return bool
      */
-    private function checkFile($src, $dest)
+    private function files_identical($fn1, $fn2)
     {
-        $src_md5 = md5_file($src);
-        $dest_md5 = '';
-        if (file_exists($dest)) {
-            $dest_md5 = md5_file($dest);
+        if (filetype($fn1) !== filetype($fn2)) {
+            return false;
         }
-        if ($src_md5 === $dest_md5) {
-            $this->logger->info("file $src existing in the destination");
-            return true;
+
+        if (filesize($fn1) !== filesize($fn2)) {
+            return false;
         }
-        return false;
+
+        if (!$fp1 = fopen($fn1, 'rb')) {
+            return false;
+        }
+
+        if (!$fp2 = fopen($fn2, 'rb')) {
+            fclose($fp1);
+            return false;
+        }
+
+        $same = true;
+        while (!feof($fp1) and !feof($fp2)) {
+            if (fread($fp1, READ_LEN) !== fread($fp2, READ_LEN)) {
+                $same = false;
+                break;
+            }
+        }
+
+        if (feof($fp1) !== feof($fp2)) {
+            $same = false;
+        }
+
+        fclose($fp1);
+        fclose($fp2);
+
+        return $same;
     }
 
 }
