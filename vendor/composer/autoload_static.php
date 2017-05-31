@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit5a61e8e0c74d355b1d720846e7f257b0
+class ComposerStaticInit57a8805f500faa20de355f178c88eccf
 {
     public static $prefixLengthsPsr4 = array (
         'T' => 
@@ -18,6 +18,11 @@ class ComposerStaticInit5a61e8e0c74d355b1d720846e7f257b0
         'M' => 
         array (
             'Monolog\\' => 8,
+        ),
+        'B' => 
+        array (
+            'Bramus\\Monolog\\' => 15,
+            'Bramus\\Ansi\\' => 12,
         ),
     );
 
@@ -34,13 +39,21 @@ class ComposerStaticInit5a61e8e0c74d355b1d720846e7f257b0
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
+        'Bramus\\Monolog\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/bramus/monolog-colored-line-formatter/src',
+        ),
+        'Bramus\\Ansi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/bramus/ansi-php/src',
+        ),
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit5a61e8e0c74d355b1d720846e7f257b0::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit5a61e8e0c74d355b1d720846e7f257b0::$prefixDirsPsr4;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit57a8805f500faa20de355f178c88eccf::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit57a8805f500faa20de355f178c88eccf::$prefixDirsPsr4;
 
         }, null, ClassLoader::class);
     }

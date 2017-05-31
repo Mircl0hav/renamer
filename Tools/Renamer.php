@@ -2,7 +2,6 @@
 
 namespace Tools;
 
-use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
 /**
@@ -37,10 +36,13 @@ class Renamer
         $this->create_directory('gifs');
         $this->create_directory('videos');
         $this->create_directory('trash');
+    }
 
-        $this->logger = new Logger("renamer");
-        $this->logger->pushHandler(new StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . "logs/renamer.log",
-            Logger::DEBUG));
+    /**
+     * @param Logger $logger
+     */
+    public function setLogger(Logger $logger){
+        $this->logger = $logger;
     }
 
     /**

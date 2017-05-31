@@ -21,6 +21,15 @@ if (!empty($opts['e'])) {
     $excludes_path = explode(':', $opts['e']);
 }
 
-$oRenamer = new Renamer($source, $destination);
-$oRenamer->setExcludedPath($excludes_path);
-$oRenamer->execute($source);
+$logger = new \Monolog\Logger("renamer");
+
+$logHandler = new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::DEBUG);
+$logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
+$logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . "logs/renamer.log",
+    \Monolog\Logger::DEBUG));
+$logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
+
+$renamer = new Renamer($source, $destination);
+$renamer->setLogger($logger);
+$renamer->setExcludedPath($excludes_path);
+$renamer->execute($source);

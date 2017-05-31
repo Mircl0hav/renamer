@@ -9,4 +9,6 @@ return array(
     'Tools\\' => array($baseDir . '/Tools'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
+    'Bramus\\Monolog\\' => array($vendorDir . '/bramus/monolog-colored-line-formatter/src'),
+    'Bramus\\Ansi\\' => array($vendorDir . '/bramus/ansi-php/src'),
 );
