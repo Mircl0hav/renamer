@@ -116,7 +116,7 @@ class Renamer
     public function move_files($src, $dest)
     {
         $src = $this->source . DIRECTORY_SEPARATOR . $src;
-        $dest = $this->destination . DIRECTORY_SEPARATOR . $dest;
+        $dest = realpath($this->destination) . DIRECTORY_SEPARATOR . $dest;
 
         $result = 0;
 
