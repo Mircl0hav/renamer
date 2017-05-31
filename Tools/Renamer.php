@@ -10,40 +10,85 @@ use Monolog\Logger;
 class Renamer
 {
 
-    /**
-     * @var
-     */
-    protected $rapport;
-
-    /**
-     * @var Logger
-     */
+    /** @var Logger */
     protected $logger;
+
+    /** @var string */
+    protected $source = '';
+
+    /** @var string */
+    protected $destination = '';
+
+    /** @var array */
+    protected $excludes_path = ['.', '..'];
 
     /**
      * Renamer constructor.
-     * @param Logger $logger
+     * @param $source
+     * @param $destination
      */
-    public function __construct(Logger $logger)
+    public function __construct($source, $destination)
     {
-        $this->logger = $logger;
+        $this->source = $source;
+        $this->destination = $destination;
+
+        $this->create_directory('images');
+        $this->create_directory('gifs');
+        $this->create_directory('videos');
+        $this->create_directory('trash');
+
+        $this->logger = new \Monolog\Logger("renamer");
+        $this->logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . "logs/renamer.log",
+            \Monolog\Logger::DEBUG));
     }
 
+    /**
+     * @param array $excludes_path
+     */
+    public function setExcludedPath(array $excludes_path)
+    {
+        $this->excludes_path = array_merge($this->excludes_path, $excludes_path);
+    }
+
+    /**
+     * @return array
+     */
+    public function getExcludedPath(): array
+    {
+        return $this->excludes_path;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDestination(): string
+    {
+        return $this->destination;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSource(): string
+    {
+        return $this->source;
+    }
 
     /**
      * @param $directory
      */
     public function create_directory($directory)
     {
+        $directory = $this->destination . DIRECTORY_SEPARATOR . $directory;
         if (!is_dir($directory)) {
             try {
                 mkdir($directory, 0755, true);
-                $this->logger->debug($directory . " créer");
+                $this->logger->debug($directory . " created");
             } catch (\Exception $e) {
                 $this->logger->error($e->getMessage());
             }
         } else {
-            $this->logger->debug($directory . " existe");
+            $this->logger->debug($directory . " exist");
         }
     }
 
@@ -69,6 +114,9 @@ class Renamer
      */
     public function move_files($src, $dest)
     {
+        $src = $this->source . DIRECTORY_SEPARATOR . $src;
+        $dest = $this->destination . DIRECTORY_SEPARATOR . $dest;
+
         $result = 0;
         if (copy($src, $dest)) {
             $this->logger->debug($src . ' :: ' . $dest);
@@ -87,58 +135,58 @@ class Renamer
     /**
      * @param $directory
      */
-    public function parse_directory($directory)
+    public function execute($directory)
     {
         $this->logger->info("parse directory " . $directory);
-        $scanned_directory = array_diff(scandir($directory), ['..', '.', '@eaDir']);
+        $scanned_directory = array_diff(scandir($directory), $this->excludes_path);
+
+        // parcours le repertoire
         foreach ($scanned_directory as $entry) {
-            if (is_dir(realpath($directory . DIRECTORY_SEPARATOR . $entry))) {
+            if (is_dir(realpath($entry))) {
                 $this->logger->debug('path:' . realpath($entry));
-                $this->parse_directory($directory . DIRECTORY_SEPARATOR . $entry);
+                $this->execute($entry);
             } else {
                 $this->logger->debug("entry:" . $entry);
-                try {
-                    $mime_content_type = mime_content_type($directory . DIRECTORY_SEPARATOR . $entry);
-                    switch ($mime_content_type) {
-                        case 'image/jpeg':
-                            $this->logger->debug($entry);
-                            $exif_data = exif_read_data($directory . DIRECTORY_SEPARATOR . $entry);
-                            $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
-                            $this->logger->info($exif_data['FileName'] . ' : ' . date('Y-m-d H:i:s', $dateEntry));
-                            $new_file = $this->classify($dateEntry, IMAGES_PATH, '.jpg');
-                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry, $new_file);
-                            break;
-                        case 'image/gif':
-                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
-                                GIFS_PATH . uniqid('gifs_') . '.gif');
-                            break;
-                        case 'video/mp4':
-                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
-                                VIDEOS_PATH . uniqid('video_') . '.mp4');
-                            break;
-                        case 'application/octet-stream':
-                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
-                                VIDEOS_PATH . uniqid('mts_') . '.mp4');
-                            break;
-                        case 'application/vnd.oasis.opendocument.text':
-                        case 'image/png':
-                        case 'text/plain':
-                        case 'application/xml':
-                        case 'inode/x-empty':
-                        case 'application/CDFV2-unknown':
-                            unlink($directory . DIRECTORY_SEPARATOR . $entry);
-                            break;
-                        case 'text/x-shellscript':
-                        case 'text/x-php':
-                        case 'application/CDFV2-corrupt':
-                            break;
-                        default:
-                            $this->logger->info($entry . ': ' . $mime_content_type);
-                            die;
-                            break;
-                    }
-                } catch (\Exception $e) {
-                    echo $e->getMessage();
+                $mime_content_type = mime_content_type($entry);
+                switch ($mime_content_type) {
+                    case 'image/jpeg':
+                        // images
+                        $this->logger->debug($entry);
+                        $exif_data = exif_read_data($entry);
+                        $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
+                        $this->logger->info($exif_data['FileName'] . ' : ' . date('Y-m-d H:i:s', $dateEntry));
+                        $new_file = $this->classify($dateEntry, '/images/', '.jpg');
+                        $this->move_files($entry, $new_file);
+                        break;
+                    case 'image/gif':
+                        // gif
+                        $this->move_files($entry,
+                            '/gifs/' . uniqid('gifs_') . '.gif');
+                        break;
+                    case 'video/mp4':
+                    case 'application/octet-stream':
+                        // videos
+                        $this->move_files($entry,
+                            '/movies/' . uniqid('mts_') . '.mp4');
+                        break;
+                    case 'application/vnd.oasis.opendocument.text':
+                    case 'image/png':
+                    case 'text/plain':
+                    case 'application/xml':
+                    case 'inode/x-empty':
+                    case 'application/CDFV2-unknown':
+                        // delete no media files
+                        $this->move_files($entry,
+                            '/trash/' . $entry);
+                        break;
+                    case 'text/x-shellscript':
+                    case 'text/x-php':
+                    case 'application/CDFV2-corrupt':
+                        break;
+                    default:
+                        $this->logger->info($entry . ': ' . $mime_content_type);
+                        die;
+                        break;
                 }
             }
         }
