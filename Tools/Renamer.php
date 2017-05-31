@@ -148,12 +148,15 @@ class Renamer
                 $this->execute($entry);
             } else {
                 $this->logger->debug("entry:" . $entry);
-                $mime_content_type = mime_content_type($entry);
+
+                $dataEntry = $this->getEntryInfo($entry);
+
+                $mime_content_type = $dataEntry['mime'];
                 switch ($mime_content_type) {
                     case 'image/jpeg':
                         // images
                         $this->logger->debug($entry);
-                        $exif_data = exif_read_data($entry);
+                        $exif_data = $dataEntry['exif'];
                         $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
                         $this->logger->info($exif_data['FileName'] . ' : ' . date('Y-m-d H:i:s', $dateEntry));
                         $new_file = $this->classify($dateEntry, '/images/', '.jpg');
@@ -191,6 +194,18 @@ class Renamer
                 }
             }
         }
+    }
+
+    /**
+     * @param $entry
+     * @return array
+     */
+    private function getEntryInfo($entry): array
+    {
+        $dataSet['mime'] = mime_content_type($this->source . '/' . $entry);
+        $dataSet['exif'] = exif_read_data($this->source . '/' . $entry);
+
+        return $dataSet;
     }
 
 }
