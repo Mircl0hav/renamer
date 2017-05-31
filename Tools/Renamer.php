@@ -121,6 +121,7 @@ class Renamer
 
         $result = 0;
 
+        $this->logger->debug("src=$src:dest=$dest");
         if($this->files_identical($src, $dest)){
             $this->logger->debug("identical : $src / $dest");
             return false;
