@@ -116,7 +116,7 @@ class Renamer
      * @param $dest
      * @return bool
      */
-    public function move_files($src, $dest) :bool
+    public function move_files($src, $dest): bool
     {
         $src = $this->source . DIRECTORY_SEPARATOR . $src;
         $dest = realpath($this->destination) . DIRECTORY_SEPARATOR . $dest;
@@ -124,15 +124,13 @@ class Renamer
         $result = 0;
 
         $this->logger->debug("src=$src:dest=$dest");
-        if($this->files_identical($src, $dest)){
+        if ($this->files_identical($src, $dest)) {
             $this->logger->debug("identical : $src / $dest");
             return false;
         }
 
-        if (copy($src, $dest)) {
-            if (!@unlink($src)) {
-                $this->logger->error('delete impossible : ' . $src);
-            }
+        if (!rename($src, $dest)) {
+            $this->logger->error('delete impossible : ' . $src);
         }
         return true;
     }
