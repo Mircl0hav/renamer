@@ -29,8 +29,8 @@ class Renamer
      */
     public function __construct($source, $destination)
     {
-        $this->source = $source;
-        $this->destination = $destination;
+        $this->source = realpath($source);
+        $this->destination = realpath($destination);
 
         $this->create_directory('images');
         $this->create_directory('gifs');
