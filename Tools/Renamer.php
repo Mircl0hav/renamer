@@ -219,6 +219,10 @@ class Renamer
      */
     private function files_identical($fn1, $fn2)
     {
+        if (!file_exists($fn1) || !file_exists($fn2)) {
+            return false;
+        }
+
         if (filetype($fn1) !== filetype($fn2)) {
             return false;
         }
