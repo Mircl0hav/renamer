@@ -105,7 +105,7 @@ class Renamer
         $month = date('m', $fileDateTime);
         $this->create_directory($directory_root . $year);
         $this->create_directory($directory_root . $year . DIRECTORY_SEPARATOR . $month);
-        $newName = date('d-H-i', $fileDateTime) . uniqid('_') . $extension;
+        $newName = date('d-H-i-s', $fileDateTime) . $extension;
         return $directory_root . $year . DIRECTORY_SEPARATOR . $month . DIRECTORY_SEPARATOR . $newName;
     }
 
