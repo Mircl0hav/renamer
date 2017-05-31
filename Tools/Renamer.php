@@ -122,7 +122,7 @@ class Renamer
         $result = 0;
 
         if($this->files_identical($src, $dest)){
-            $this->logger->info("identical : $src / $dest");
+            $this->logger->debug("identical : $src / $dest");
             return false;
         }
 
@@ -130,12 +130,6 @@ class Renamer
             if (!@unlink($src)) {
                 $this->logger->error('delete impossible : ' . $src);
             }
-            $this->logger->debug(implode("||", [
-                'action'      => 'move',
-                'source'      => $src,
-                'destination' => $dest,
-                'state'       => $result,
-            ]));
         }
         return true;
     }
@@ -221,14 +215,17 @@ class Renamer
     private function files_identical($fn1, $fn2)
     {
         if (!file_exists($fn1) || !file_exists($fn2)) {
+            $this->logger->debug('file_exists');
             return false;
         }
 
         if (filetype($fn1) !== filetype($fn2)) {
+            $this->logger->debug('file_type');
             return false;
         }
 
         if (filesize($fn1) !== filesize($fn2)) {
+            $this->logger->debug('file_size');
             return false;
         }
 
