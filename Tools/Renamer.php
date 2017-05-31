@@ -115,8 +115,8 @@ class Renamer
      */
     public function move_files($src, $dest)
     {
-        $src = $this->source . $src;
-        $dest = $this->destination . $dest;
+        $src = $this->source . DIRECTORY_SEPARATOR . $src;
+        $dest = $this->destination . DIRECTORY_SEPARATOR . $dest;
 
         $result = 0;
         if (copy($src, $dest)) {
