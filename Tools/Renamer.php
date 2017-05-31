@@ -112,15 +112,21 @@ class Renamer
     /**
      * @param $src
      * @param $dest
+     * @return bool
      */
-    public function move_files($src, $dest)
+    public function move_files($src, $dest) :bool
     {
         $src = $this->source . DIRECTORY_SEPARATOR . $src;
         $dest = realpath($this->destination) . DIRECTORY_SEPARATOR . $dest;
 
         $result = 0;
 
-        if (!$this->files_identical($src, $dest) && copy($src, $dest)) {
+        if($this->files_identical($src, $dest)){
+            $this->logger->info("$src is identical to $dest");
+            return false;
+        }
+
+        if (copy($src, $dest)) {
             $this->logger->debug($src . ' :: ' . $dest);
             if (!@unlink($src)) {
                 $this->logger->error('delete ' . $src);
@@ -132,6 +138,7 @@ class Renamer
                 'state'       => $result,
             ]));
         }
+        return true;
     }
 
     /**
