@@ -97,44 +97,48 @@ class Renamer
                 $this->parse_directory($directory . DIRECTORY_SEPARATOR . $entry);
             } else {
                 $this->logger->debug("entry:" . $entry);
-                $mime_content_type = mime_content_type($directory . DIRECTORY_SEPARATOR . $entry);
-                switch ($mime_content_type) {
-                    case 'image/jpeg':
-                        $this->logger->debug($entry);
-                        $exif_data = exif_read_data($directory . DIRECTORY_SEPARATOR . $entry);
-                        $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
-                        $this->logger->info($exif_data['FileName'] . ' : ' . date('Y-m-d H:i:s', $dateEntry));
-                        $new_file = $this->classify($dateEntry, IMAGES_PATH, '.jpg');
-                        $this->move_files($directory . DIRECTORY_SEPARATOR . $entry, $new_file);
-                        break;
-                    case 'image/gif':
-                        $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
-                            GIFS_PATH . uniqid('gifs_') . '.gif');
-                        break;
-                    case 'video/mp4':
-                        $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
-                            VIDEOS_PATH . uniqid('video_') . '.mp4');
-                        break;
-                    case 'application/octet-stream':
-                        $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
-                            VIDEOS_PATH . uniqid('mts_') . '.mp4');
-                        break;
-                    case 'application/vnd.oasis.opendocument.text':
-                    case 'image/png':
-                    case 'text/plain':
-                    case 'application/xml':
-                    case 'inode/x-empty':
-                    case 'application/CDFV2-unknown':
-                        unlink($directory . DIRECTORY_SEPARATOR . $entry);
-                        break;
-                    case 'text/x-shellscript':
-                    case 'text/x-php':
-                    case 'application/CDFV2-corrupt':
-                        break;
-                    default:
-                        $this->logger->info($entry . ': ' . $mime_content_type);
-                        die;
-                        break;
+                try {
+                    $mime_content_type = mime_content_type($directory . DIRECTORY_SEPARATOR . $entry);
+                    switch ($mime_content_type) {
+                        case 'image/jpeg':
+                            $this->logger->debug($entry);
+                            $exif_data = exif_read_data($directory . DIRECTORY_SEPARATOR . $entry);
+                            $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
+                            $this->logger->info($exif_data['FileName'] . ' : ' . date('Y-m-d H:i:s', $dateEntry));
+                            $new_file = $this->classify($dateEntry, IMAGES_PATH, '.jpg');
+                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry, $new_file);
+                            break;
+                        case 'image/gif':
+                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
+                                GIFS_PATH . uniqid('gifs_') . '.gif');
+                            break;
+                        case 'video/mp4':
+                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
+                                VIDEOS_PATH . uniqid('video_') . '.mp4');
+                            break;
+                        case 'application/octet-stream':
+                            $this->move_files($directory . DIRECTORY_SEPARATOR . $entry,
+                                VIDEOS_PATH . uniqid('mts_') . '.mp4');
+                            break;
+                        case 'application/vnd.oasis.opendocument.text':
+                        case 'image/png':
+                        case 'text/plain':
+                        case 'application/xml':
+                        case 'inode/x-empty':
+                        case 'application/CDFV2-unknown':
+                            unlink($directory . DIRECTORY_SEPARATOR . $entry);
+                            break;
+                        case 'text/x-shellscript':
+                        case 'text/x-php':
+                        case 'application/CDFV2-corrupt':
+                            break;
+                        default:
+                            $this->logger->info($entry . ': ' . $mime_content_type);
+                            die;
+                            break;
+                    }
+                } catch (\Exception $e) {
+                    echo $e->getMessage();
                 }
             }
         }
