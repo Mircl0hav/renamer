@@ -121,8 +121,8 @@ class Renamer
         $result = 0;
         if (copy($src, $dest)) {
             $this->logger->debug($src . ' :: ' . $dest);
-            if (unlink($src)) {
-                $result = 1;
+            if (!unlink($src)) {
+                $this->logger->error('delete ' . $src);
             }
             $this->logger->debug(implode("||", [
                 'action'      => 'move',
