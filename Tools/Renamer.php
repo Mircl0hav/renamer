@@ -41,7 +41,8 @@ class Renamer
     /**
      * @param Logger $logger
      */
-    public function setLogger(Logger $logger){
+    public function setLogger(Logger $logger)
+    {
         $this->logger = $logger;
     }
 
@@ -86,12 +87,9 @@ class Renamer
         if (!is_dir($directory)) {
             try {
                 mkdir($directory, 0755, true);
-                $this->logger->debug($directory . " created");
             } catch (\Exception $e) {
-                $this->logger->error($e->getMessage());
+                echo $e->getMessage();
             }
-        } else {
-            $this->logger->debug($directory . " exist");
         }
     }
 
@@ -117,8 +115,8 @@ class Renamer
      */
     public function move_files($src, $dest)
     {
-        $src = $this->source . DIRECTORY_SEPARATOR . $src;
-        $dest = $this->destination . DIRECTORY_SEPARATOR . $dest;
+        $src = $this->source . $src;
+        $dest = $this->destination . $dest;
 
         $result = 0;
         if (copy($src, $dest)) {
