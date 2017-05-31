@@ -9,12 +9,12 @@ $directory_source = __DIR__ . DIRECTORY_SEPARATOR . "upload";
 if (!empty($opts['s'])) {
     $directory_source = $opts['s'];
 } else {
-    throw new Exception("paramètre manquant -s [source_path]");
+    throw new Exception("missing parameter -s [source_path]");
 }
 if (!empty($opts['d'])) {
     $destination_path = $opts['d'];
 } else {
-    throw new Exception("paramètre manquant -d [destination_path]");
+    throw new Exception("missing parameter -d [destination_path]");
 }
 
 
@@ -34,7 +34,7 @@ $oRenamer->create_directory(GIFS_PATH);
 $oRenamer->create_directory(VIDEOS_PATH);
 
 if (!is_dir($directory_source)) {
-    throw new Exception("Le dossier $directory_source n'existe pas !");
+    throw new Exception("folder $directory_source doesn't exist !");
 }
 $oRenamer->parse_directory($directory_source);
 
