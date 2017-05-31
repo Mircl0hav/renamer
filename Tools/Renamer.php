@@ -228,7 +228,9 @@ class Renamer
         }
 
         if (filesize($fn1) !== filesize($fn2)) {
-            $this->logger->debug('file_size');
+            $f1 = filesize($fn1);
+            $f2 = filesize($fn2);
+            $this->logger->debug("file size $f1:$f2");
             return false;
         }
 
