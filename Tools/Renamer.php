@@ -122,14 +122,13 @@ class Renamer
         $result = 0;
 
         if($this->files_identical($src, $dest)){
-            $this->logger->info("$src is identical to $dest");
+            $this->logger->info("identical : $src / $dest");
             return false;
         }
 
         if (copy($src, $dest)) {
-            $this->logger->debug($src . ' :: ' . $dest);
             if (!@unlink($src)) {
-                $this->logger->error('delete ' . $src);
+                $this->logger->error('delete impossible : ' . $src);
             }
             $this->logger->debug(implode("||", [
                 'action'      => 'move',
@@ -152,21 +151,16 @@ class Renamer
         // parcours le repertoire
         foreach ($scanned_directory as $entry) {
             if (is_dir(realpath($entry))) {
-                $this->logger->debug('path:' . realpath($entry));
                 $this->execute($entry);
             } else {
-                $this->logger->debug("entry:" . $entry);
-
                 $dataEntry = $this->getEntryInfo($entry);
 
                 $mime_content_type = $dataEntry['mime'];
                 switch ($mime_content_type) {
                     case 'image/jpeg':
                         // images
-                        $this->logger->debug($entry);
                         $exif_data = $dataEntry['exif'];
                         $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
-                        $this->logger->info($exif_data['FileName'] . ' : ' . date('Y-m-d H:i:s', $dateEntry));
                         $new_file = $this->classify($dateEntry, '/images/', '.jpg');
                         $this->move_files($entry, $new_file);
                         break;
