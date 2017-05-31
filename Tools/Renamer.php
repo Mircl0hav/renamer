@@ -223,6 +223,7 @@ class Renamer
         $dest_md5 = md5_file($dest);
 
         if ($src_md5 === $dest_md5) {
+            $this->logger->info("file $src existing in the destination");
             return true;
         }
         return false;
