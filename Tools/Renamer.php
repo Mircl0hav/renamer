@@ -10,6 +10,8 @@ use Monolog\Logger;
 class Renamer
 {
 
+    protected static $READ_LEN = 4096;
+
     /** @var Logger */
     protected $logger;
 
@@ -241,7 +243,7 @@ class Renamer
 
         $same = true;
         while (!feof($fp1) and !feof($fp2)) {
-            if (fread($fp1, READ_LEN) !== fread($fp2, READ_LEN)) {
+            if (fread($fp1, self::$READ_LEN) !== fread($fp2, self::$READ_LEN)) {
                 $same = false;
                 break;
             }
