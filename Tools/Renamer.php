@@ -220,8 +220,10 @@ class Renamer
     private function checkFile($src, $dest)
     {
         $src_md5 = md5_file($src);
-        $dest_md5 = md5_file($dest);
-
+        $dest_md5 = '';
+        if (file_exists($dest)) {
+            $dest_md5 = md5_file($dest);
+        }
         if ($src_md5 === $dest_md5) {
             $this->logger->info("file $src existing in the destination");
             return true;
