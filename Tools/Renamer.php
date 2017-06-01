@@ -242,11 +242,13 @@ class Renamer
      */
     private function checkIdentical($fn1, $fn2)
     {
+        // si le fichier $fn1 ou $fn2 n'existe pas, ils ne peuvent pas être identique
         if (!file_exists($fn1) || !file_exists($fn2)) {
             $this->logger->debug('no file_exists');
             return false;
         }
 
+        // controle le sha1 des deux fichiers
         if (sha1_file($fn1) === sha1_file($fn2)) {
             $this->logger->debug("sha1_file");
             return true;
