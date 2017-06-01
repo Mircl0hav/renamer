@@ -118,37 +118,35 @@ class Renamer
      */
     public function move_files($src, $dest): bool
     {
-        $src = $this->source . DIRECTORY_SEPARATOR . $src;
-        $dest = realpath($this->destination) . DIRECTORY_SEPARATOR . $dest;
-
-        $result = 0;
+        $dest = realpath($this->destination) . $dest;
 
         $this->logger->debug("src=$src:dest=$dest");
-        if ($this->files_identical($src, $dest)) {
-            $this->logger->debug("identical : $src / $dest");
+        if ($this->checkIdentical($src, $dest)) {
+            $this->logger->debug("identical : $src : $dest");
             return false;
         }
 
         if (!rename($src, $dest)) {
-            $this->logger->error('delete impossible : ' . $src);
+            $this->logger->error("delete : " . $src);
         }
         return true;
     }
 
     /**
-     * @param $directory
+     * @param $base
      */
-    public function execute($directory)
+    public function execute($base)
     {
-        $this->logger->info("parse directory " . $directory);
-        $scanned_directory = array_diff(scandir($directory), $this->excludes_path);
+        $this->logger->info("parse directory " . $base);
+        $scanned_directory = array_diff(scandir($base), $this->excludes_path);
 
         // parcours le repertoire
         foreach ($scanned_directory as $entry) {
-            if (is_dir(realpath($entry))) {
-                $this->execute($entry);
+            $currentEntry = $base.$entry;
+            if (is_dir(realpath($currentEntry))) {
+                $this->execute($currentEntry.DIRECTORY_SEPARATOR);
             } else {
-                $dataEntry = $this->getEntryInfo($entry);
+                $dataEntry = $this->getEntryInfo($currentEntry);
 
                 $mime_content_type = $dataEntry['mime'];
                 switch ($mime_content_type) {
@@ -157,18 +155,18 @@ class Renamer
                         $exif_data = $dataEntry['exif'];
                         $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
                         $new_file = $this->classify($dateEntry, '/images/', '.jpg');
-                        $this->move_files($entry, $new_file);
+                        $this->move_files($currentEntry, $new_file);
                         break;
                     case 'image/gif':
                         // gif
-                        $this->move_files($entry,
-                            '/gifs/' . uniqid('gifs_') . '.gif');
+                        $this->move_files($currentEntry,
+                            '/gifs/' . $entry);
                         break;
                     case 'video/mp4':
                     case 'application/octet-stream':
                         // videos
-                        $this->move_files($entry,
-                            '/movies/' . uniqid('mts_') . '.mp4');
+                        $this->move_files($currentEntry,
+                            '/movies/' . $entry);
                         break;
                     case 'application/vnd.oasis.opendocument.text':
                     case 'image/png':
@@ -177,7 +175,7 @@ class Renamer
                     case 'inode/x-empty':
                     case 'application/CDFV2-unknown':
                         // delete no media files
-                        $this->move_files($entry,
+                        $this->move_files($currentEntry,
                             '/trash/' . $entry);
                         break;
                     case 'text/x-shellscript':
@@ -185,7 +183,7 @@ class Renamer
                     case 'application/CDFV2-corrupt':
                         break;
                     default:
-                        $this->logger->info($entry . ': ' . $mime_content_type);
+                        $this->logger->info($currentEntry . ': ' . $mime_content_type);
                         die;
                         break;
                 }
@@ -200,9 +198,9 @@ class Renamer
     private function getEntryInfo($entry): array
     {
         $dataSet['exif'] = [];
-        $dataSet['mime'] = mime_content_type($this->source . '/' . $entry);
+        $dataSet['mime'] = mime_content_type($entry);
         if ($dataSet['mime'] == 'image/jpeg') {
-            $dataSet['exif'] = exif_read_data($this->source . '/' . $entry);
+            $dataSet['exif'] = exif_read_data($entry);
         }
 
         return $dataSet;
@@ -213,48 +211,19 @@ class Renamer
      * @param $fn2
      * @return bool
      */
-    private function files_identical($fn1, $fn2)
+    private function checkIdentical($fn1, $fn2)
     {
         if (!file_exists($fn1) || !file_exists($fn2)) {
-            $this->logger->debug('file_exists');
+            $this->logger->debug('no file_exists');
             return false;
         }
 
-        if (filetype($fn1) !== filetype($fn2)) {
-            $this->logger->debug('file_type');
-            return false;
-        }
-
-        if (sha1_file($fn1) !== sha1_file($fn2)) {
+        if (sha1_file($fn1) === sha1_file($fn2)) {
             $this->logger->debug("sha1_file");
-            return false;
+            return true;
         }
 
-        if (!$fp1 = fopen($fn1, 'rb')) {
-            return false;
-        }
-
-        if (!$fp2 = fopen($fn2, 'rb')) {
-            fclose($fp1);
-            return false;
-        }
-
-        $same = true;
-        while (!feof($fp1) and !feof($fp2)) {
-            if (fread($fp1, self::$READ_LEN) !== fread($fp2, self::$READ_LEN)) {
-                $same = false;
-                break;
-            }
-        }
-
-        if (feof($fp1) !== feof($fp2)) {
-            $same = false;
-        }
-
-        fclose($fp1);
-        fclose($fp2);
-
-        return $same;
+        return false;
     }
 
 }

@@ -4,7 +4,7 @@ use Tools\Renamer;
 
 require_once "./vendor/autoload.php";
 
-$opts = getopt("s:d:");
+$opts = getopt("s:d:e:");
 if (!empty($opts['s'])) {
     $source = $opts['s'];
 } else {
