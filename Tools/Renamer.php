@@ -10,8 +10,6 @@ use Monolog\Logger;
 class Renamer
 {
 
-    protected static $READ_LEN = 4096;
-
     /** @var Logger */
     protected $logger;
 
@@ -40,6 +38,7 @@ class Renamer
         $this->source = realpath($source);
         $this->destination = realpath($destination);
 
+        // création des répertoire de base
         $this->create_directory('images');
         $this->create_directory('gifs');
         $this->create_directory('videos');
@@ -95,6 +94,7 @@ class Renamer
     }
 
     /**
+     * Création d'un répertoire si il n'existe pas
      * @param $directory
      */
     public function create_directory($directory)
@@ -110,6 +110,7 @@ class Renamer
     }
 
     /**
+     * Classe les fichiers par année et par mois
      * @param $fileDateTime
      * @param $directory_root
      * @param string $extension
@@ -119,13 +120,18 @@ class Renamer
     {
         $year = date('Y', $fileDateTime);
         $month = date('m', $fileDateTime);
+
+        // création des repertoires de classification BASE/YYYY/mm/
         $this->create_directory($directory_root . $year);
         $this->create_directory($directory_root . $year . DIRECTORY_SEPARATOR . $month);
+
+        // génère un nouveau nom pour le fichier
         $newName = date('d-H-i-s', $fileDateTime) . $extension;
         return $directory_root . $year . DIRECTORY_SEPARATOR . $month . DIRECTORY_SEPARATOR . $newName;
     }
 
     /**
+     * Déplace ou copie un fichier et déduplique
      * @param $src
      * @param $dest
      * @return bool
@@ -135,11 +141,14 @@ class Renamer
         $dest = realpath($this->destination) . $dest;
 
         $this->logger->debug("src=$src:dest=$dest");
+
+        // check si le fichier de destination existe et qu'il est identique
         if ($this->checkIdentical($src, $dest)) {
             $this->logger->debug("identical : $src : $dest");
             return false;
         }
 
+        // selon le mode on copie ou on déplace le fichier (attention aux permissions)
         if ($this->keep_source === false && !rename($src, $dest)) {
             $this->logger->error("delete : " . $src);
         } else {
@@ -149,6 +158,7 @@ class Renamer
     }
 
     /**
+     * Renomage de masse des fichiers depuis le dossier source
      * @param $base
      */
     public function execute($base)
@@ -159,28 +169,30 @@ class Renamer
         // parcours le repertoire
         foreach ($scanned_directory as $entry) {
             $currentEntry = $base . $entry;
+
+            // si l'entrée est un repertoire on rentre dans l'arborescence
             if (is_dir(realpath($currentEntry))) {
                 $this->execute($currentEntry . DIRECTORY_SEPARATOR);
             } else {
+                // on récupère les infos du fichier (EXIF si une image)
                 $dataEntry = $this->getEntryInfo($currentEntry);
 
                 $mime_content_type = $dataEntry['mime'];
+
+                // selon le type de fichier
                 switch ($mime_content_type) {
                     case 'image/jpeg':
-                        // images
                         $exif_data = $dataEntry['exif'];
                         $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
                         $new_file = $this->classify($dateEntry, '/images/', '.jpg');
                         $this->move_files($currentEntry, $new_file);
                         break;
                     case 'image/gif':
-                        // gif
                         $this->move_files($currentEntry,
                             '/gifs/' . $entry);
                         break;
                     case 'video/mp4':
                     case 'application/octet-stream':
-                        // videos
                         $this->move_files($currentEntry,
                             '/movies/' . $entry);
                         break;
@@ -190,7 +202,6 @@ class Renamer
                     case 'application/xml':
                     case 'inode/x-empty':
                     case 'application/CDFV2-unknown':
-                        // delete no media files
                         $this->move_files($currentEntry,
                             '/trash/' . $entry);
                         break;
@@ -208,6 +219,7 @@ class Renamer
     }
 
     /**
+     * Récupère les infos d'un fichier (mime et EXIF)
      * @param $entry
      * @return array
      */
@@ -223,6 +235,7 @@ class Renamer
     }
 
     /**
+     * Contrôle si le fichier $fn1 est identique à $fn2 si il existe
      * @param $fn1
      * @param $fn2
      * @return bool
