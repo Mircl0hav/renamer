@@ -15,6 +15,9 @@ class Renamer
     /** @var Logger */
     protected $logger;
 
+    /** @var  boolean */
+    protected $keep_source;
+
     /** @var string */
     protected $source = '';
 
@@ -31,6 +34,9 @@ class Renamer
      */
     public function __construct($source, $destination)
     {
+
+        $this->keep_source = true;
+
         $this->source = realpath($source);
         $this->destination = realpath($destination);
 
@@ -46,6 +52,14 @@ class Renamer
     public function setLogger(Logger $logger)
     {
         $this->logger = $logger;
+    }
+
+    /**
+     * @param bool $keep_source
+     */
+    public function setKeepSource(bool $keep_source)
+    {
+        $this->keep_source = $keep_source;
     }
 
     /**
@@ -126,8 +140,10 @@ class Renamer
             return false;
         }
 
-        if (!rename($src, $dest)) {
+        if ($this->keep_source === false && !rename($src, $dest)) {
             $this->logger->error("delete : " . $src);
+        } else {
+            copy($src, $dest);
         }
         return true;
     }
@@ -142,9 +158,9 @@ class Renamer
 
         // parcours le repertoire
         foreach ($scanned_directory as $entry) {
-            $currentEntry = $base.$entry;
+            $currentEntry = $base . $entry;
             if (is_dir(realpath($currentEntry))) {
-                $this->execute($currentEntry.DIRECTORY_SEPARATOR);
+                $this->execute($currentEntry . DIRECTORY_SEPARATOR);
             } else {
                 $dataEntry = $this->getEntryInfo($currentEntry);
 
