@@ -23,12 +23,12 @@ if (!empty($opts['e'])) {
 
 $logger = new \Monolog\Logger('renamer');
 
-$logHandler = new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::DEBUG);
+$logHandler = new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::ERROR);
 $logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
 $logger->pushHandler($logHandler);
 
 $logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . 'logs/renamer.log',
-    \Monolog\Logger::DEBUG));
+    \Monolog\Logger::ERROR));
 $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
 
 $renamer = new Renamer($source, $destination);
