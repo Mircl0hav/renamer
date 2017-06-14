@@ -1,0 +1,12 @@
+{
+  "source": "",
+  "destination": "",
+  "excludes": [
+    ""
+  ],
+  "size": {
+    "height": 600,
+    "width": 600
+  },
+  "keep": true
+}

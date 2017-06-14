@@ -178,7 +178,7 @@ class Renamer
         copy($src, $dest);
         if ($this->keep_source === false) {
             unlink($src);
-            $this->logger->error('delete : ' . $src);
+            $this->logger->debug('delete : ' . $src);
         }
         return true;
     }
