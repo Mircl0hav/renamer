@@ -29,6 +29,7 @@ class Renamer
      * Renamer constructor.
      * @param $source
      * @param $destination
+     * @throws \Exception
      */
     public function __construct($source, $destination)
     {
@@ -48,7 +49,7 @@ class Renamer
     /**
      * @param Logger $logger
      */
-    public function setLogger(Logger $logger)
+    public function setLogger(Logger $logger): void
     {
         $this->logger = $logger;
     }
@@ -56,7 +57,7 @@ class Renamer
     /**
      * @param bool $keep_source
      */
-    public function setKeepSource(bool $keep_source)
+    public function setKeepSource(bool $keep_source): void
     {
         $this->keep_source = $keep_source;
     }
@@ -64,7 +65,7 @@ class Renamer
     /**
      * @param array $excludes_path
      */
-    public function setExcludedPath(array $excludes_path)
+    public function setExcludedPath(array $excludes_path): void
     {
         $this->excludes_path = array_merge($this->excludes_path, $excludes_path);
     }
@@ -96,16 +97,13 @@ class Renamer
     /**
      * Création d'un répertoire si il n'existe pas
      * @param $directory
+     * @throws \Exception
      */
-    public function create_directory($directory)
+    public function create_directory($directory): void
     {
         $directory = $this->destination . DIRECTORY_SEPARATOR . $directory;
-        if (!is_dir($directory)) {
-            try {
-                mkdir($directory, 0755, true);
-            } catch (\Exception $e) {
-                echo $e->getMessage();
-            }
+        if (!@mkdir($directory, 0755, true) && !is_dir($directory)) {
+            throw new \RuntimeException('Impossible de créer le repertoire !');
         }
     }
 
@@ -115,8 +113,9 @@ class Renamer
      * @param $directory_root
      * @param string $extension
      * @return string
+     * @throws \Exception
      */
-    public function classify($fileDateTime, $directory_root, $extension = '.jpg')
+    public function classify($fileDateTime, $directory_root, $extension = '.jpg'): string
     {
         $year = date('Y', $fileDateTime);
         $month = date('m', $fileDateTime);
@@ -150,7 +149,7 @@ class Renamer
 
         // selon le mode on copie ou on déplace le fichier (attention aux permissions)
         if ($this->keep_source === false && !rename($src, $dest)) {
-            $this->logger->error("delete : " . $src);
+            $this->logger->error('delete : ' . $src);
         } else {
             copy($src, $dest);
         }
@@ -160,11 +159,12 @@ class Renamer
     /**
      * Renomage de masse des fichiers depuis le dossier source
      * @param $base
+     * @throws \Exception
      */
-    public function execute($base)
+    public function execute($base): void
     {
-        $this->logger->info("parse directory " . $base);
-        $scanned_directory = array_diff(scandir($base), $this->excludes_path);
+        $this->logger->info('parse directory ' . $base);
+        $scanned_directory = array_diff(scandir($base, SCANDIR_SORT_NONE), $this->excludes_path);
 
         // parcours le repertoire
         foreach ($scanned_directory as $entry) {
@@ -184,7 +184,7 @@ class Renamer
                     case 'image/jpeg':
                         $exif_data = $dataEntry['exif'];
                         $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
-                        $new_file = $this->classify($dateEntry, '/images/', '.jpg');
+                        $new_file = $this->classify($dateEntry, '/images/');
                         $this->move_files($currentEntry, $new_file);
                         break;
                     case 'image/gif':
@@ -227,7 +227,7 @@ class Renamer
     {
         $dataSet['exif'] = [];
         $dataSet['mime'] = mime_content_type($entry);
-        if ($dataSet['mime'] == 'image/jpeg') {
+        if ($dataSet['mime'] === 'image/jpeg') {
             $dataSet['exif'] = exif_read_data($entry);
         }
 
@@ -240,7 +240,7 @@ class Renamer
      * @param $fn2
      * @return bool
      */
-    private function checkIdentical($fn1, $fn2)
+    private function checkIdentical($fn1, $fn2): bool
     {
         // si le fichier $fn1 ou $fn2 n'existe pas, ils ne peuvent pas être identique
         if (!file_exists($fn1) || !file_exists($fn2)) {
@@ -250,7 +250,7 @@ class Renamer
 
         // controle le sha1 des deux fichiers
         if (sha1_file($fn1) === sha1_file($fn2)) {
-            $this->logger->debug("sha1_file");
+            $this->logger->debug('sha1_file');
             return true;
         }
 
