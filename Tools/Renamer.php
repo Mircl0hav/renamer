@@ -49,7 +49,7 @@ class Renamer
     /**
      * @param Logger $logger
      */
-    public function setLogger(Logger $logger): void
+    public function setLogger(Logger $logger)
     {
         $this->logger = $logger;
     }
@@ -57,7 +57,7 @@ class Renamer
     /**
      * @param bool $keep_source
      */
-    public function setKeepSource(bool $keep_source): void
+    public function setKeepSource(bool $keep_source)
     {
         $this->keep_source = $keep_source;
     }
@@ -65,7 +65,7 @@ class Renamer
     /**
      * @param array $excludes_path
      */
-    public function setExcludedPath(array $excludes_path): void
+    public function setExcludedPath(array $excludes_path)
     {
         $this->excludes_path = array_merge($this->excludes_path, $excludes_path);
     }
@@ -99,7 +99,7 @@ class Renamer
      * @param $directory
      * @throws \Exception
      */
-    public function create_directory($directory): void
+    public function create_directory($directory)
     {
         $directory = $this->destination . DIRECTORY_SEPARATOR . $directory;
         if (!@mkdir($directory, 0755, true) && !is_dir($directory)) {
@@ -161,7 +161,7 @@ class Renamer
      * @param $base
      * @throws \Exception
      */
-    public function execute($base): void
+    public function execute($base)
     {
         $this->logger->info('parse directory ' . $base);
         $scanned_directory = array_diff(scandir($base, SCANDIR_SORT_NONE), $this->excludes_path);
