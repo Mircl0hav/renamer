@@ -17,13 +17,16 @@ class Renamer
     protected $keep_source;
 
     /** @var string */
-    protected $source = '';
+    protected $source;
 
     /** @var string */
-    protected $destination = '';
+    protected $destination;
 
     /** @var array */
     protected $excludes_path = ['.', '..'];
+
+    /** @var array */
+    protected $size = [];
 
     /**
      * Renamer constructor.
@@ -31,13 +34,13 @@ class Renamer
      * @param $destination
      * @throws \Exception
      */
-    public function __construct($source, $destination)
+    public function __construct($source = null, $destination = null)
     {
 
         $this->keep_source = true;
 
-        $this->source = realpath($source);
-        $this->destination = realpath($destination);
+        $this->source = realpath($source) . '/';
+        $this->destination = realpath($destination) . '/';
 
         // création des répertoire de base
         $this->create_directory('images');
@@ -48,26 +51,32 @@ class Renamer
 
     /**
      * @param Logger $logger
+     * @return $this
      */
     public function setLogger(Logger $logger)
     {
         $this->logger = $logger;
+        return $this;
     }
 
     /**
      * @param bool $keep_source
+     * @return $this
      */
     public function setKeepSource(bool $keep_source)
     {
         $this->keep_source = $keep_source;
+        return $this;
     }
 
     /**
      * @param array $excludes_path
+     * @return $this
      */
     public function setExcludedPath(array $excludes_path)
     {
         $this->excludes_path = array_merge($this->excludes_path, $excludes_path);
+        return $this;
     }
 
     /**
@@ -92,6 +101,24 @@ class Renamer
     public function getSource(): string
     {
         return $this->source;
+    }
+
+    /**
+     * @param array $size
+     * @return $this
+     */
+    public function setSize(array $size)
+    {
+        $this->size = $size;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSize(): array
+    {
+        return $this->size;
     }
 
     /**
@@ -148,12 +175,25 @@ class Renamer
         }
 
         // selon le mode on copie ou on déplace le fichier (attention aux permissions)
-        if ($this->keep_source === false && !rename($src, $dest)) {
+        copy($src, $dest);
+        if ($this->keep_source === false) {
+            unlink($src);
             $this->logger->error('delete : ' . $src);
-        } else {
-            copy($src, $dest);
         }
         return true;
+    }
+
+    /**
+     * @param $src
+     * @param $dest
+     */
+    protected function stream_copy($src, $dest)
+    {
+        $src = fopen($src, 'rb');
+        $dest = fopen($dest, 'wb');
+        stream_copy_to_stream($src, $dest);
+        fclose($src);
+        fclose($dest);
     }
 
     /**
@@ -161,8 +201,11 @@ class Renamer
      * @param $base
      * @throws \Exception
      */
-    public function execute($base)
+    public function execute($base = null)
     {
+        if (null === $base) {
+            $base = $this->source;
+        }
         $this->logger->info('parse directory ' . $base);
         $scanned_directory = array_diff(scandir($base, SCANDIR_SORT_NONE), $this->excludes_path);
 
@@ -182,10 +225,12 @@ class Renamer
                 // selon le type de fichier
                 switch ($mime_content_type) {
                     case 'image/jpeg':
+                        $images_path = $this->isGoodSize($dataEntry['size']) ? '/images/' : '/trash/';
                         $exif_data = $dataEntry['exif'];
                         $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
-                        $new_file = $this->classify($dateEntry, '/images/');
+                        $new_file = $this->classify($dateEntry, $images_path);
                         $this->move_files($currentEntry, $new_file);
+
                         break;
                     case 'image/gif':
                         $this->move_files($currentEntry,
@@ -193,8 +238,8 @@ class Renamer
                         break;
                     case 'video/mp4':
                     case 'application/octet-stream':
-                        $this->move_files($currentEntry,
-                            '/movies/' . $entry);
+                        $dest = realpath($this->destination) . '/videos/' . $entry;
+                        $this->stream_copy($currentEntry, $dest);
                         break;
                     case 'application/vnd.oasis.opendocument.text':
                     case 'image/png':
@@ -228,9 +273,15 @@ class Renamer
         $dataSet['exif'] = [];
         $dataSet['mime'] = mime_content_type($entry);
         if ($dataSet['mime'] === 'image/jpeg') {
-            $dataSet['exif'] = exif_read_data($entry);
+            try {
+                $dataSet['exif'] = exif_read_data($entry);
+            } catch (\Exception $e) {
+                $this->logger->error($e->getMessage());
+            }
+            list($width, $height) = getimagesize($entry);
+            $dataSet['size']['width'] = $width;
+            $dataSet['size']['height'] = $height;
         }
-
         return $dataSet;
     }
 
@@ -255,6 +306,21 @@ class Renamer
         }
 
         return false;
+    }
+
+    /**
+     * @param $size
+     * @return bool
+     */
+    private function isGoodSize($size): bool
+    {
+        if (!empty($this->size)) {
+            if ($size['width'] < $this->size['width'] || $size['height'] < $this->size['height']) {
+                return false;
+            }
+        }
+        return true;
+
     }
 
 }
