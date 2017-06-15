@@ -225,12 +225,13 @@ class Renamer
                 // selon le type de fichier
                 switch ($mime_content_type) {
                     case 'image/jpeg':
-                        $images_path = $this->isGoodSize($dataEntry['size']) ? '/images/' : '/trash/';
                         $exif_data = $dataEntry['exif'];
-                        $dateEntry = isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $exif_data['FileDateTime'];
-                        $new_file = $this->classify($dateEntry, $images_path);
-                        $this->move_files($currentEntry, $new_file);
-
+                        if (!empty($exif_data['DateTimeOriginal'])) {
+                            $dateEntry = strtotime($exif_data['DateTimeOriginal']);
+                            $images_path = $this->isGoodSize($dataEntry['size']) ? '/images/' : '/trash/';
+                            $new_file = $this->classify($dateEntry, $images_path);
+                            $this->move_files($currentEntry, $new_file);
+                        }
                         break;
                     case 'image/gif':
                         $this->move_files($currentEntry,
@@ -255,6 +256,8 @@ class Renamer
                     case 'application/CDFV2-corrupt':
                         break;
                     default:
+                        $this->move_files($currentEntry,
+                            '/trash/' . $entry);
                         $this->logger->info($currentEntry . ': ' . $mime_content_type);
                         die;
                         break;
