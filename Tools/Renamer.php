@@ -276,7 +276,7 @@ class Renamer
             try {
                 $dataSet['exif'] = exif_read_data($entry);
             } catch (\Exception $e) {
-                $this->logger->error($e->getMessage());
+                $this->logger->debug($e->getMessage());
             }
             list($width, $height) = getimagesize($entry);
             $dataSet['size']['width'] = $width;
