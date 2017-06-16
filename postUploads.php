@@ -8,12 +8,12 @@ $args = $argv;
 $opts = getopt('dec:');
 
 $keep = true;
-$name = "";
+$logfile = '/tmp/renamer';
 $excludes_path = $size = [];
 if (!empty($opts['c'])) {
     $config = file_get_contents($opts['c']);
     $config = json_decode($config);
-    $name = $config->name;
+    $logfile = $config->logfile;
     $source = $config->source;
     $destination = $config->destination;
     $excludes_path = $config->excludes;
@@ -45,10 +45,11 @@ $logger = new \Monolog\Logger('renamer');
 $logHandler = new \Monolog\Handler\StreamHandler('php://stdout', $debug);
 $logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
 $logger->pushHandler($logHandler);
-
-$logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . 'logs/' . $name . '-' . date('Y-m-d'),
-    $debug ?: \Monolog\Logger::INFO));
-$logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
+if(!empty($logfile)) {
+    $logger->pushHandler(new \Monolog\Handler\StreamHandler($logfile . '-' . date('Y-m-d'),
+        $debug ?: \Monolog\Logger::INFO));
+    $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
+}
 
 $renamer = (new Renamer($source, $destination))
     ->setLogger($logger)
