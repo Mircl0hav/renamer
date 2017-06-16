@@ -47,8 +47,7 @@ $logHandler = new \Monolog\Handler\StreamHandler('php://stdout', $debug);
 $logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
 $logger->pushHandler($logHandler);
 
-$logger->pushHandler(new \Monolog\Handler\StreamHandler($logfile . '-' . date('Y-m-d'),
-    $debug ?: \Monolog\Logger::INFO));
+$logger->pushHandler(new \Monolog\Handler\StreamHandler($logfile . '-' . date('Y-m-d'), \Monolog\Logger::INFO));
 $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
 
 
