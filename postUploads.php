@@ -8,10 +8,12 @@ $args = $argv;
 $opts = getopt('dec:');
 
 $keep = true;
+$name = "";
 $excludes_path = $size = [];
 if (!empty($opts['c'])) {
     $config = file_get_contents($opts['c']);
     $config = json_decode($config);
+    $name = $config->name;
     $source = $config->source;
     $destination = $config->destination;
     $excludes_path = $config->excludes;
@@ -44,7 +46,7 @@ $logHandler = new \Monolog\Handler\StreamHandler('php://stdout', $debug);
 $logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
 $logger->pushHandler($logHandler);
 
-$logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . 'logs/' . date('Y-m-d'),
+$logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . 'logs/' . $name . '-' . date('Y-m-d'),
     $debug ?: \Monolog\Logger::INFO));
 $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
 
