@@ -40,12 +40,12 @@ if (!empty($opts['c'])) {
 
 $logger = new \Monolog\Logger('renamer');
 
-$logHandler = new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::ERROR);
+$logHandler = new \Monolog\Handler\StreamHandler('php://stdout', $debug);
 $logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
 $logger->pushHandler($logHandler);
 
 $logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . 'logs/' . date('Y-m-d'),
-    $errorLvl));
+    $debug));
 $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
 
 $renamer = (new Renamer($source, $destination))
