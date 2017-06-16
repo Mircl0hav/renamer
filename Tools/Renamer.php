@@ -176,8 +176,12 @@ class Renamer
         }
 
         if ($this->keep_source === false) {
-            unlink($src);
             $this->logger->info('delete : ' . $src);
+            try {
+                unlink($src);
+            } catch (\Exception $e) {
+                $this->logger->debug($e->getMessage());
+            }
         }
         return true;
     }
