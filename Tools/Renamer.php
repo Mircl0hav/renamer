@@ -169,13 +169,12 @@ class Renamer
         $this->logger->debug("src=$src:dest=$dest");
 
         // check si le fichier de destination existe et qu'il est identique
-        if ($this->checkIdentical($src, $dest)) {
-            $this->logger->debug("identical : $src : $dest");
-            return false;
+        if (!$this->checkIdentical($src, $dest)) {
+            $this->logger->debug("$src different de $dest");
+            // copy du fichier
+            copy($src, $dest);
         }
 
-        // selon le mode on copie ou on déplace le fichier (attention aux permissions)
-        copy($src, $dest);
         if ($this->keep_source === false) {
             unlink($src);
             $this->logger->debug('delete : ' . $src);
