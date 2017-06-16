@@ -216,21 +216,24 @@ class Renamer
             if (is_dir(realpath($currentEntry))) {
                 $this->execute($currentEntry . DIRECTORY_SEPARATOR);
             } else {
+                $this->logger->debug('>>' . $currentEntry);
                 // on récupère les infos du fichier (EXIF si une image)
                 $dataEntry = $this->getEntryInfo($currentEntry);
 
                 $mime_content_type = $dataEntry['mime'];
 
+                $this->logger->debug($mime_content_type);
                 // selon le type de fichier
                 switch ($mime_content_type) {
                     case 'image/jpeg':
                         $exif_data = $dataEntry['exif'];
-                        if (!empty($exif_data['DateTimeOriginal'])) {
-                            $dateEntry = strtotime($exif_data['DateTimeOriginal']);
-                            $images_path = $this->isGoodSize($dataEntry['size']) ? '/images/' : '/trash/';
-                            $new_file = $this->classify($dateEntry, $images_path);
-                            $this->move_files($currentEntry, $new_file);
+                        if (empty($exif_data['DateTimeOriginal'])) {
+                            $this->logger->error($currentEntry);
                         }
+                        $dateEntry = strtotime($exif_data['DateTimeOriginal']);
+                        $images_path = $this->isGoodSize($dataEntry['size']) ? '/images/' : '/trash/';
+                        $new_file = $this->classify($dateEntry, $images_path);
+                        $this->move_files($currentEntry, $new_file);
                         break;
                     case 'image/gif':
                         $this->move_files($currentEntry,
