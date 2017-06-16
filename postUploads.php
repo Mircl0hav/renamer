@@ -9,7 +9,7 @@ $opts = getopt('dec:');
 
 $keep = true;
 $debug = \Monolog\Logger::ERROR;
-$logfile = '/tmp/renamer';
+$logfile = 'renamer';
 $excludes_path = $size = [];
 if (!empty($opts['c'])) {
     $config = file_get_contents($opts['c']);
@@ -46,11 +46,11 @@ $logger = new \Monolog\Logger('renamer');
 $logHandler = new \Monolog\Handler\StreamHandler('php://stdout', $debug);
 $logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
 $logger->pushHandler($logHandler);
-if(!empty($logfile)) {
-    $logger->pushHandler(new \Monolog\Handler\StreamHandler($logfile . '-' . date('Y-m-d'),
-        $debug ?: \Monolog\Logger::INFO));
-    $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
-}
+
+$logger->pushHandler(new \Monolog\Handler\StreamHandler($logfile . '-' . date('Y-m-d'),
+    $debug ?: \Monolog\Logger::INFO));
+$logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
+
 
 $renamer = (new Renamer($source, $destination))
     ->setLogger($logger)
