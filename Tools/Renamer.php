@@ -206,7 +206,7 @@ class Renamer
             $base = $this->source;
         }
         $this->logger->info('parse directory ' . $base);
-        $scanned_directory = array_diff(scandir($base, SCANDIR_SORT_DESCENDING), $this->excludes_path);
+        $scanned_directory = array_diff(scandir($base, SCANDIR_SORT_ASCENDING), $this->excludes_path);
 
         // parcours le repertoire
         foreach ($scanned_directory as $entry) {
