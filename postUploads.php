@@ -8,6 +8,7 @@ $args = $argv;
 $opts = getopt('dec:');
 
 $keep = true;
+$debug = \Monolog\Logger::ERROR;
 $logfile = '/tmp/renamer';
 $excludes_path = $size = [];
 if (!empty($opts['c'])) {
@@ -19,7 +20,7 @@ if (!empty($opts['c'])) {
     $excludes_path = $config->excludes;
     $size = (array)$config->size;
     $keep = $config->keep;
-    $debug = !empty($config->debug) ? \Monolog\Logger::DEBUG : \Monolog\Logger::ERROR;
+    $debug = !empty($config->debug) ? \Monolog\Logger::DEBUG : $debug;
     unset($config);
 } elseif (!empty($args['1']) && !empty($args['2'])) {
     echo "usage : php postUploads.php SOURCE DEST\r\n";
