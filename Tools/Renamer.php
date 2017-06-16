@@ -240,6 +240,9 @@ class Renamer
                             '/gifs/' . $entry);
                         break;
                     case 'video/mp4':
+                        $this->move_files($currentEntry,
+                            '/videos/' . $entry);
+                        break;
                     case 'application/octet-stream':
                         $dest = realpath($this->destination) . '/videos/' . $entry;
                         $this->stream_copy($currentEntry, $dest);
