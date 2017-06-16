@@ -45,7 +45,7 @@ $logHandler->setFormatter(new \Bramus\Monolog\Formatter\ColoredLineFormatter());
 $logger->pushHandler($logHandler);
 
 $logger->pushHandler(new \Monolog\Handler\StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . 'logs/' . date('Y-m-d'),
-    $debug));
+    $debug ?: \Monolog\Logger::INFO));
 $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
 
 $renamer = (new Renamer($source, $destination))
