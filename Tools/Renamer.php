@@ -227,13 +227,11 @@ class Renamer
                 switch ($mime_content_type) {
                     case 'image/jpeg':
                         $exif_data = $dataEntry['exif'];
-                        if (empty($exif_data['DateTimeOriginal'])) {
-                            $this->logger->error($currentEntry);
+                        if ($dateEntry = $this->getDate($exif_data)) {
+                            $images_path = $this->isGoodSize($dataEntry['size']) ? '/images/' : '/trash/';
+                            $new_file = $this->classify($dateEntry, $images_path);
+                            $this->move_files($currentEntry, $new_file);
                         }
-                        $dateEntry = strtotime($exif_data['DateTimeOriginal']);
-                        $images_path = $this->isGoodSize($dataEntry['size']) ? '/images/' : '/trash/';
-                        $new_file = $this->classify($dateEntry, $images_path);
-                        $this->move_files($currentEntry, $new_file);
                         break;
                     case 'image/gif':
                         $this->move_files($currentEntry,
@@ -291,6 +289,31 @@ class Renamer
             $dataSet['size']['height'] = $height;
         }
         return $dataSet;
+    }
+
+
+    /**
+     * @param array $exif
+     * @return false|int
+     */
+    public function getDate(array $exif)
+    {
+
+        $timestamp = 0;
+        if (!empty($exif['DateTimeOriginal'])) {
+            $timestamp = strtotime($exif['DateTimeOriginal']);
+        } elseif (!empty($exif['DateTime'])) {
+            $timestamp = strtotime($exif['DateTime']);
+        } elseif (!empty($exif['DateTimeDigitized'])) {
+            $timestamp = strtotime($exif['DateTimeDigitized']);
+        }
+        // si le timestamp de la photo à plus de trois mois, il y a un soucis
+        if ((time() - 7776000) > $timestamp) {
+            $this->logger->error('date trop ancienne : ' . date('d-m-Y H:i:s') . ' >> ' . date('d-m-Y H:i:s', time() - 7776000));
+            return false;
+        }
+        return $timestamp;
+
     }
 
     /**
