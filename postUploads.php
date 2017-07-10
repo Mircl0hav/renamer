@@ -10,18 +10,9 @@ $opts = getopt('dec:');
 $keep = true;
 $debug = \Monolog\Logger::ERROR;
 $logfile = 'renamer';
-$excludes_path = $size = [];
+$excludes_path = $size = $config = [];
 if (!empty($opts['c'])) {
-    $config = file_get_contents($opts['c']);
-    $config = json_decode($config);
-    $logfile = $config->logfile;
-    $source = $config->source;
-    $destination = $config->destination;
-    $excludes_path = $config->excludes;
-    $size = (array)$config->size;
-    $keep = $config->keep;
-    $debug = !empty($config->debug) ? \Monolog\Logger::DEBUG : $debug;
-    unset($config);
+    $config = \Tools\ConfigFactory::create($opts['c']);
 } elseif (!empty($args['1']) && !empty($args['2'])) {
     echo "usage : php postUploads.php SOURCE DEST\r\n";
     echo "-d : supprime les fichiers source après copy\r\n";
@@ -50,11 +41,6 @@ $logger->pushHandler($logHandler);
 $logger->pushHandler(new \Monolog\Handler\StreamHandler($logfile . '-' . date('Y-m-d'), \Monolog\Logger::INFO));
 $logHandler->setFormatter(new \Monolog\Formatter\LineFormatter(null, null, true, true));
 
-
-$renamer = (new Renamer($source, $destination))
-    ->setLogger($logger)
-    ->setExcludedPath($excludes_path)
-    ->setKeepSource($keep)
-    ->setSize($size);
+$renamer = new Renamer($config);
 // lance le renomage
 $renamer->execute();

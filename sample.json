@@ -1,6 +1,12 @@
 {
   "source": "",
   "destination": "",
+  "paths_name": {
+    "videos": "videos",
+    "photos": "photos",
+    "gifs": "gifs",
+    "trash": "trash"
+  },
   "excludes": [
     ""
   ],
