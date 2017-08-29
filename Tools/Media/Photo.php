@@ -54,6 +54,8 @@ class Photo
             $timestamp = strtotime($exif['DateTime']);
         } elseif (!empty($exif['DateTimeDigitized'])) {
             $timestamp = strtotime($exif['DateTimeDigitized']);
+        }   elseif (!empty($exif['FileDateTime'])) {
+            $timestamp = $exif['FileDateTime'];
         }
         // si le timestamp de la photo à plus de trois mois, il y a un soucis
         if (empty($timestamp)) {
